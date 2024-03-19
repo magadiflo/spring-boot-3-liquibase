@@ -127,3 +127,107 @@ con `liquibase`, así que ahora procedemos a crear dicho archivo en el directori
 
 `src/main/resources/db/changelog/changelog-master.xml`
 
+## [Configurando changelog-master.xml](https://contribute.liquibase.com/extensions-integrations/directory/integration-docs/springboot/using-springboot-with-maven/)
+
+Recordemos que `Liquibase` nos permite trabajar con distintos tipos de archivos `SQL`, `XML`, `JSON` y `YML`. En este
+proyecto trabajaremos con `XML`, es por eso que creamos el archivo `changelog-master.xml`.
+
+Agregamos el siguiente contenido a dicho archivo:
+
+````xml
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+
+</databaseChangeLog>
+````
+
+## Ejecutando aplicación
+
+Hasta este punto ejecutamos la aplicación y vemos lo siguiente:
+
+1. En consola nos muestra el siguiente log:<br><br>
+   ![Log First Run](./assets/02.log-first-run.png)
+
+
+2. En la base de datos de SQL Server vemos dos tablas generadas:<br><br>
+   ![Tables Sql Server](./assets/03.tables-sql-server.png)
+
+## Agregando configuración
+
+Vamos a crear un nuevo archivo llamado `changelog_v1.xml` donde vamos a definir un `<changeSet></changeSet>`. Este nuevo
+archivo tendrá los datos necesarios para crear la tabla `pokemons` en la base de datos:
+
+````xml
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+    <changeSet id="1" author="Martín">
+        <createTable tableName="pokemons">
+            <column name="id" type="INTEGER">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
+````
+
+Ahora, para que este archivo se pueda ejecutar debemos incluirlo en el archivo `changelog-master.xml`:
+
+````xml
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+
+    <include file="/db/changelog/changelog_v1.xml"/>
+</databaseChangeLog>
+````
+
+## Ejecutando aplicación
+
+Si ejecutamos con estas nuevas configuraciones, como resultado debemos tener creado la tabla `pokemons` en la base de
+datos con las columnas que hemos definido en el archivo `changelog_v1.xml`:
+
+A continuación se muestra el log generado en el ide:
+
+![Log Second Run](./assets/04.log-second-run.png)
+
+Ahora, si revisamos la base de datos vemos que la tabla `pokemons` se ha creado correctamente y además las tablas
+`DATABASECHANGELOG` y `DATABASECHANGELOGLOCK` tienen valores propios de la migración realizada:
+
+![Table pokemons](./assets/05.table-pokemons.png)
+
+Veamos la información completa de la tabla `DATABASECHANGELOG`, donde podemos ver el id, el autor, qué archivo
+se ha ejecutado, qué es lo que se está haciendo, etc.:
+
+![06.database-change-log.png](./assets/06.database-change-log.png)
