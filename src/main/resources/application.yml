@@ -1,0 +1,26 @@
+server:
+  port: 8080
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: spring-boot-3-liquibase
+
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=db_liquibase;encrypt=true;trustServerCertificate=true;
+    username: sa
+    password: magadiflo
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+
+  liquibase:
+    change-log: classpath:db/changelog/changelog-master.xml
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
