@@ -305,3 +305,180 @@ Vemos en el log del ide:
 Finalmente, vemos en SQL Server que el registro fue insertado correctamente:
 
 ![10.insert-row-pokemons.png](./assets/10.insert-row-pokemons.png)
+
+## Realizando Rollback
+
+Hasta ahora tenemos ejecutadas 3 migraciones:
+
+- 1° Crea una tabla
+- 2° Agrega una columna adicional a la tabla
+- 3° Inserta un registro en la tabla
+
+Ahora, qué pasa si por **alguna razón** deseamos regresar al estado de la `1° migración`, es decir queremos deshacer
+todos los cambios realizados y quedarnos en el estado de cuando creamos la tabla, en pocas palabras queremos hacer
+un `rollback`.
+
+Para poder realizar un `rollback` de las migraciones, debemos agregar una dependencia y un plugin adicional en
+el `pom.xml`:
+
+````xml
+
+<dependencies>
+    <dependency>
+        <groupId>org.liquibase</groupId>
+        <artifactId>liquibase-maven-plugin</artifactId>
+        <version>4.20.0</version>
+    </dependency>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>4.20.0</version>
+                <configuration>
+                    <propertyFile>src/main/resources/db/liquibase.yml</propertyFile>
+                    <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</dependencies>
+````
+
+Si observamos en el plugin anterior, estamos definiendo un tag `<propertyFile>` donde hacemos referencia a un archivo
+que debemos crear en la ruta que hemos especificado:
+
+`src/main/resources/db/liquibase.yml`
+
+````yml
+url: jdbc:sqlserver://localhost:1433;databaseName=db_liquibase;encrypt=true;trustServerCertificate=true;
+username: sa
+password: magadiflo
+changeLogFile: src/main/resources/db/changelog/changelog-master.xml
+````
+
+El archivo contiene las mismas configuraciones a la base de datos que definimos en el `application.yml`.
+
+Es importante notar que en dicho archivo hacemos referencia al `changelog-master.xml`:
+
+`changeLogFile: src/main/resources/db/changelog/changelog-master.xml`
+
+Antes de ejecutar el comando para poder hacer un `rollback`, es necesario fijarnos en la migración `changelog_v3.xml`
+donde estamos **insertando registro en la base de datos**. Si nos fijamos, únicamente hemos definido el `insert` y
+si ejecutamos el `rollback` vamos a obtener el siguiente error:
+
+![11.error-rollback.png](./assets/11.error-rollback.png)
+
+**¿Qué significa ese error?**
+
+Pues, en la migración únicamente hemos definido el `insert` y para que se aplique el rollback, debemos definirle
+precisamente un `rollback` para que liquibase sepa como revertir el campo que se está insertando si es que en algún
+momento se decide hacer `rollback`. Entonces, el archivo de la migración `changelog_v3.xml` quedaría de esta manera:
+
+````xml
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+    <changeSet id="1" author="Martín">
+        <insert catalogName="db_liquibase" schemaName="dbo" tableName="pokemons">
+            <column name="id" value="1"/>
+            <column name="name" value="Pikachu"/>
+            <column name="type" value="electric"/>
+            <column name="description" value="It is a electric mouse"/>
+            <column name="power" value="500"/>
+        </insert>
+        <rollback>
+            <delete catalogName="db_liquibase" schemaName="dbo" tableName="pokemons">
+                <where>name='Pikachu'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
+````
+
+## Ejecutando Rollback
+
+Recordemos cómo es que hasta ahora tenemos la base de datos con la ejecución de las tres migraciones:
+
+![12.before-rollback.png](./assets/12.before-rollback.png)
+
+Ahora, **supongamos que queremos deshacer 2 migraciones**, es decir, queremos **que el estado de nuestra base de datos
+esté como si recién hubiéramos ejecutado la migración 1 (creación de la tabla pokemons).** Para eso, nos posicionamos en
+la raíz del proyecto y ejecutamos el siguiente comando:
+
+Con `-Dliquibase.rollbackCount=2` le indicamos cuántas migraciones hacia atrás queremos revertir.
+
+````bash
+M:\PROGRAMACION\DESARROLLO_JAVA_SPRING\02.youtube\21.shahid-foy\spring-boot-3-liquibase (main)
+$ mvn liquibase:rollback -Dliquibase.rollbackCount=2
+
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ---------------< dev.magadiflo:spring-boot-3-liquibase >----------------
+[INFO] Building spring-boot-3-liquibase 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- liquibase:4.20.0:rollback (default-cli) @ spring-boot-3-liquibase ---
+[WARNING]  Parameter 'promptOnNonLocalDatabase' (user property 'liquibase.promptOnNonLocalDatabase') is deprecated: No longer prompts
+[INFO] ------------------------------------------------------------------------
+[INFO] Parsing Liquibase Properties File
+[INFO]   File: src/main/resources/db/liquibase.yml
+[INFO] ------------------------------------------------------------------------
+[INFO] ####################################################
+##   _     _             _ _                      ##
+##  | |   (_)           (_) |                     ##
+##  | |    _  __ _ _   _ _| |__   __ _ ___  ___   ##
+##  | |   | |/ _` | | | | | '_ \ / _` / __|/ _ \  ##
+##  | |___| | (_| | |_| | | |_) | (_| \__ \  __/  ##
+##  \_____/_|\__, |\__,_|_|_.__/ \__,_|___/\___|  ##
+##              | |                               ##
+##              |_|                               ##
+##                                                ##
+##  Get documentation at docs.liquibase.com       ##
+##  Get certified courses at learn.liquibase.com  ##
+##  Free schema change activity reports at        ##
+##      https://hub.liquibase.com                 ##
+##                                                ##
+####################################################
+Starting Liquibase at 23:31:50 (version 4.24.0 #14062 built at 2023-09-28 12:18+0000)
+[INFO] Set default schema name to dbo
+[INFO] Parsing Liquibase Properties File src/main/resources/db/liquibase.yml for changeLog parameters
+[INFO] Executing on Database: jdbc:sqlserver://localhost:1433;databaseName=db_liquibase;encrypt=true;trustServerCertificate=true;
+[INFO] Changelog query completed.
+[INFO] Changelog query completed.
+[INFO] Changelog query completed.
+[INFO] Successfully acquired change log lock
+[INFO] Changelog query completed.
+[INFO] Changelog query completed.
+[INFO] Changelog query completed.
+[INFO] Reading from DATABASECHANGELOG
+[INFO] Changelog query completed.
+Rolling Back Changeset: db/changelog/changelog_v3.xml::1::Martín
+[INFO] Changelog query completed.
+Rolling Back Changeset: db/changelog/changelog_v2.xml::1::Martín
+[INFO] Changelog query completed.
+[INFO] Rollback command completed successfully.
+[INFO] Changelog query completed.
+[INFO] Successfully released change log lock
+[INFO] ------------------------------------------------------------------------
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.597 s
+[INFO] Finished at: 2024-03-18T23:31:54-05:00
+[INFO] ------------------------------------------------------------------------
+````
+
+El resultado fue **exitoso**, eso significa que la **migración 2** (agregar una nueva columna) y la **migración 3** (
+insertar un registro en la tabla) fueron revertidos, tal como se observa en la siguiente imagen:
+
+![After Rollback](./assets/13.after-rollback.png)

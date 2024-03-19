@@ -1,0 +1,4 @@
+url: jdbc:sqlserver://localhost:1433;databaseName=db_liquibase;encrypt=true;trustServerCertificate=true;
+username: sa
+password: magadiflo
+changeLogFile: src/main/resources/db/changelog/changelog-master.xml

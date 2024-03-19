@@ -27,6 +27,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-maven-plugin</artifactId>
+            <version>4.20.0</version>
+        </dependency>
+        <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
             <scope>runtime</scope>
@@ -43,6 +48,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>4.20.0</version>
+                <configuration>
+                    <propertyFile>src/main/resources/db/liquibase.yml</propertyFile>
+                    <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
+                </configuration>
             </plugin>
         </plugins>
     </build>

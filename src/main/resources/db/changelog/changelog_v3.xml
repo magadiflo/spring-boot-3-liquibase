@@ -16,5 +16,10 @@
             <column name="description" value="It is a electric mouse"/>
             <column name="power" value="500"/>
         </insert>
+        <rollback>
+            <delete catalogName="db_liquibase" schemaName="dbo" tableName="pokemons">
+                <where>name='Pikachu'</where>
+            </delete>
+        </rollback>
     </changeSet>
 </databaseChangeLog>
