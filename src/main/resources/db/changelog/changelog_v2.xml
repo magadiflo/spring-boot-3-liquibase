@@ -8,8 +8,11 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
         http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
-
-    <include file="/db/changelog/changelog_v1.xml"/>
-    <include file="/db/changelog/changelog_v2.xml"/>
-
+    <changeSet id="1" author="Martín">
+        <addColumn catalogName="db_liquibase" schemaName="dbo" tableName="pokemons">
+            <column name="power" type="INTEGER">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

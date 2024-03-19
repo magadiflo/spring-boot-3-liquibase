@@ -160,7 +160,7 @@ Hasta este punto ejecutamos la aplicación y vemos lo siguiente:
 2. En la base de datos de SQL Server vemos dos tablas generadas:<br><br>
    ![Tables Sql Server](./assets/03.tables-sql-server.png)
 
-## Agregando configuración
+## Primera migración: Creando tabla pokemons
 
 Vamos a crear un nuevo archivo llamado `changelog_v1.xml` donde vamos a definir un `<changeSet></changeSet>`. Este nuevo
 archivo tendrá los datos necesarios para crear la tabla `pokemons` en la base de datos:
@@ -231,3 +231,39 @@ Veamos la información completa de la tabla `DATABASECHANGELOG`, donde podemos v
 se ha ejecutado, qué es lo que se está haciendo, etc.:
 
 ![06.database-change-log.png](./assets/06.database-change-log.png)
+
+## Segunda migración: Agregando nueva columna a tabla pokemons
+
+En la siguiente migración, lo que haremos será agregar una nueva columna a la tabla `pokemons` que ya está creada
+en la base de datos, así que en el archivo `changelog_v2.xml` usamos el siguiente código:
+
+````xml
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+    <changeSet id="1" author="Martín">
+        <addColumn catalogName="db_liquibase" schemaName="dbo" tableName="pokemons">
+            <column name="power" type="INTEGER">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>
+````
+
+## Ejecutando la aplicación
+
+Vemos en el log del ide:
+
+![07.log-third-run.png](./assets/07.log-third-run.png)
+
+Finalmente, vemos en SQL Server que la nueva columa configurada se ha creado exitosamente:
+
+![08.database-add-column.png](./assets/08.database-add-column.png)
