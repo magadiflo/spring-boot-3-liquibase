@@ -264,6 +264,44 @@ Vemos en el log del ide:
 
 ![07.log-third-run.png](./assets/07.log-third-run.png)
 
-Finalmente, vemos en SQL Server que la nueva columa configurada se ha creado exitosamente:
+Finalmente, vemos en SQL Server que la nueva columna configurada se ha creado exitosamente:
 
 ![08.database-add-column.png](./assets/08.database-add-column.png)
+
+## Tercera migración: Agregando registro a la tabla pokemons
+
+En esta tercera migración, vamos a insertar un registro a la tabla `pokemons`. Para eso crearemos el archivo
+`changelog_v3.xml` y definiremos dentro el `insert` de registros:
+
+````xml
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+    <changeSet id="1" author="Martín">
+        <insert catalogName="db_liquibase" schemaName="dbo" tableName="pokemons">
+            <column name="id" value="1"/>
+            <column name="name" value="Pikachu"/>
+            <column name="type" value="electric"/>
+            <column name="description" value="It is a electric mouse"/>
+            <column name="power" value="500"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
+````
+
+## Ejecutando la aplicación
+
+Vemos en el log del ide:
+
+![09.log-four-run.png](./assets/09.log-four-run.png)
+
+Finalmente, vemos en SQL Server que el registro fue insertado correctamente:
+
+![10.insert-row-pokemons.png](./assets/10.insert-row-pokemons.png)
