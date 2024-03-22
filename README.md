@@ -318,8 +318,13 @@ Ahora, qué pasa si por **alguna razón** deseamos regresar al estado de la `1°
 todos los cambios realizados y quedarnos en el estado de cuando creamos la tabla, en pocas palabras queremos hacer
 un `rollback`.
 
-Para poder realizar un `rollback` de las migraciones, debemos agregar una dependencia y un plugin adicional en
-el `pom.xml`:
+## Liquibase Mave Plugin
+
+Para poder realizar un `rollback` de las migraciones, esta vez utilizaremos la línea de comandos para variar el ejemplo,
+entonces requerimos previamente agregar el `Liquibase Maven Plugin` para facilitar la llamada a `Liquibase` desde la
+línea de comandos:
+
+Esta sería la dependencia a agregar:
 
 ````xml
 
@@ -329,20 +334,27 @@ el `pom.xml`:
         <artifactId>liquibase-maven-plugin</artifactId>
         <version>4.20.0</version>
     </dependency>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.liquibase</groupId>
-                <artifactId>liquibase-maven-plugin</artifactId>
-                <version>4.20.0</version>
-                <configuration>
-                    <propertyFile>src/main/resources/db/liquibase.yml</propertyFile>
-                    <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </dependencies>
+````
+
+Y además debemos agregar la siguiente configuración, donde podemos notar que estamos llamando al
+archivo `liquibase.yml`. Este será el archivo que usará nuestro `Liquibase Maven Plugin`:
+
+````xml
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-maven-plugin</artifactId>
+            <version>4.20.0</version>
+            <configuration>
+                <propertyFile>src/main/resources/db/liquibase.yml</propertyFile>
+                <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
 ````
 
 Si observamos en el plugin anterior, estamos definiendo un tag `<propertyFile>` donde hacemos referencia a un archivo
